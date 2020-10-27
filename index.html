@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Timer</title>
+
+    <style>
+      body {
+        text-align: center;
+        font-size: 10em;
+        font-family: monospace;
+        background: black;
+        color: limegreen;
+        padding-top: 2rem;
+      }
+
+      p {
+        margin: 1rem;
+      }
+
+      button {
+        font-size: 2rem;
+        background: limegreen;
+        color: black;
+        border: 2px solid transparent;
+        border: none;
+        border-radius: 0.25rem;
+        margin: 0.5rem;
+      }
+
+      .btn-outline {
+        background: black;
+        border: 2px solid limegreen;
+        color: limegreen;
+      }
+
+      .inputs {
+        max-width: 10rem;
+        margin: 1rem auto;
+      }
+
+      .inputs,
+      .inputs button {
+        font-size: 1rem;
+      }
+
+      .inputs button {
+        margin: 0;
+      }
+
+      .inputs {
+        display: grid;
+        gap: 0.5rem;
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <div aria-live="polite" id="app"></div>
+      <form class="inputs">
+        <label for="milliseconds">Set Milliseconds</label>
+        <input id="milliseconds" name="milliseconds" type="number" />
+        <button type="submit" data-update>Update</button>
+      </form>
+    </main>
+
+    <script>
+      (function () {
+        // Variables
+        let duration = 900;
+        let timer;
+
+        const timeInput = document.querySelector("#milliseconds");
+
+        // Methods
+        const handler = function (instance) {
+          return {
+            get: function (obj, prop) {
+              if (
+                ["[object Object]", "[object Array]"].indexOf(
+                  Object.prototype.toString.call(obj[prop])
+                ) > -1
+              ) {
+                return new Proxy(obj[prop], handler(instance));
+              }
+              return obj[prop];
+              instance.render();
+            },
+            set: function (obj, prop, value) {
+              obj[prop] = value;
+              instance.render();
+              return true;
+            },
+            deleteProperty: function (obj, prop) {
+              delete obj[prop];
+              instance.render();
+              return true;
+            },
+          };
+        };
+
+        const Kareact = function (selector, options) {
+          let _this = this;
+          _this.elem = document.querySelector(selector);
+          let _data = new Proxy(options.data, handler(_this));
+          _this.template = options.template;
+
+          // Allow whole new data object to be passed in
+          Object.defineProperty(_this, "data", {
+            get: function () {
+              return _data;
+            },
+            set: function (data) {
+              _data = new Proxy(data, handler(_this));
+              _this.render();
+              return true;
+            },
+          });
+        };
+
+        Kareact.prototype.render = function () {
+          this.elem.innerHTML = this.template(this.data);
+        };
+
+        let app = new Kareact("#app", {
+          data: {
+            time: duration,
+            paused: true,
+          },
+          template: function (props) {
+            let startOrPause =
+              props.paused === false
+                ? "<button data-pause>Pause</button>"
+                : "<button data-start>Start</button>";
+            if (props.time <= 0) {
+              startOrPause = "";
+            }
+
+            return (
+              "<p>" +
+              formatTime(props.time) +
+              "</p>" +
+              "<button class='btn-outline' data-restart>Reset</button>" +
+              startOrPause
+            );
+          },
+        });
+
+        function countDown() {
+          // reduce by 1 second
+          app.data.time--;
+
+          // check if timer should be paused
+          if (app.data.paused === true) {
+            // clearInterval(timer);
+            return;
+          }
+
+          // check if the timer should be stopped
+          stopTimer();
+        }
+
+        function stopTimer() {
+          if (app.data.time > 0) return;
+          clearInterval(timer);
+        }
+
+        function pauseTimer() {
+          clearInterval(timer);
+          app.data.paused = true;
+        }
+
+        function startTimer() {
+          if (app.data.time <= 0) {
+            resetTimer();
+          }
+          // start the countdown timer
+          timer = setInterval(countDown, 1000);
+          app.data.paused = false;
+        }
+
+        function resetTimer() {
+          clearInterval(timer);
+
+          //reset to original start time
+          app.data.time = duration;
+
+          //Pause it
+          app.data.paused = true;
+
+          // // start the countdown timer
+          // timer = setInterval(countDown, 1000);
+        }
+
+        function clickHandler(event) {
+          if (!event.target.matches("button")) {
+            return;
+          }
+
+          if (event.target.matches("[data-restart]")) {
+            resetTimer();
+          }
+
+          if (event.target.matches("[data-start]")) {
+            startTimer();
+          }
+
+          if (event.target.matches("[data-pause]")) {
+            pauseTimer();
+          }
+
+          if (event.target.matches("[data-update]")) {
+            duration = timeInput.value;
+            app.data.time = timeInput.value;
+          }
+        }
+
+        function formatTime(time) {
+          let minutes = parseInt(time / 60, 10);
+          let seconds = time % 60;
+
+          return (
+            minutes.toString().padStart(2, "0") +
+            ":" +
+            seconds.toString().padStart(2, "0")
+          );
+        }
+
+        // Events
+        app.render();
+        document.addEventListener("click", clickHandler);
+        document.addEventListener("submit", function (e) {
+          e.preventDefault();
+        });
+      })();
+    </script>
+  </body>
+</html>
