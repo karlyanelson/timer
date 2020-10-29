@@ -6,6 +6,10 @@
     <title>Timer</title>
 
     <style>
+      * {
+        box-sizing: border-box;
+      }
+
       body {
         text-align: center;
         font-size: 10em;
@@ -35,9 +39,21 @@
         color: limegreen;
       }
 
+      input,
+      label {
+        display: block;
+      }
+
+      input {
+        width: 100%;
+        min-width: 0;
+      }
+
       .inputs {
-        max-width: 15rem;
+        max-width: 12rem;
         margin: 1rem auto;
+        display: grid;
+        gap: 0.5rem;
       }
 
       .inputs,
@@ -49,9 +65,21 @@
         margin: 0;
       }
 
-      .inputs {
+      .grid {
         display: grid;
-        gap: 0.5rem;
+        gap: 0.75rem;
+      }
+
+      .grid-cols-2 {
+        grid-template-columns: repeat(2, 1fr);
+      }
+
+      .block {
+        display: block;
+      }
+
+      .mb-2 {
+        margin-bottom: 0.5rem;
       }
     </style>
   </head>
@@ -59,8 +87,30 @@
     <main>
       <div aria-live="polite" id="app"></div>
       <form class="inputs">
-        <label for="milliseconds">Duration in Milliseconds</label>
-        <input id="milliseconds" name="milliseconds" type="number" />
+        <fieldset>
+          <legend>Duration</legend>
+          <div class="grid grid-cols-2">
+            <div>
+              <label class="mb-2" for="minutes">Min</label>
+              <input
+                id="minutes"
+                name="minutes"
+                placeholder="15"
+                type="number"
+              />
+            </div>
+            <div>
+              <label class="mb-2" for="seconds">Sec</label>
+              <input
+                id="seconds"
+                name="seconds"
+                type="number"
+                placeholder="0"
+              />
+            </div>
+          </div>
+        </fieldset>
+
         <button type="submit" data-update>Update</button>
       </form>
     </main>
@@ -71,7 +121,8 @@
         let duration = 900;
         let timer;
 
-        const timeInput = document.querySelector("#milliseconds");
+        const minInput = document.querySelector("#minutes");
+        const secInput = document.querySelector("#seconds");
 
         // Methods
         const handler = function (instance) {
@@ -211,8 +262,12 @@
           }
 
           if (event.target.matches("[data-update]")) {
-            duration = timeInput.value;
-            app.data.time = timeInput.value;
+            let minutes = parseInt(minInput.value) * 60;
+
+            let seconds = parseInt(secInput.value);
+
+            duration = minutes + seconds;
+            app.data.time = minutes + seconds;
           }
         }
 
