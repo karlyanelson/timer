@@ -12,15 +12,26 @@
 
       body {
         text-align: center;
-        font-size: 10em;
+        font-size: 16px;
         font-family: monospace;
         background: black;
         color: limegreen;
         padding-top: 2rem;
       }
 
+      main {
+        font-size: 10em;
+      }
+
+      @media (max-width: 768px) {
+        body {
+          font-size: 8px;
+        }
+      }
+
       p {
         margin: 1rem;
+        word-wrap: break-word;
       }
 
       button {
@@ -92,21 +103,11 @@
           <div class="grid grid-cols-2">
             <div>
               <label class="mb-2" for="minutes">Min</label>
-              <input
-                id="minutes"
-                name="minutes"
-                placeholder="15"
-                type="number"
-              />
+              <input id="minutes" name="minutes" type="number" />
             </div>
             <div>
               <label class="mb-2" for="seconds">Sec</label>
-              <input
-                id="seconds"
-                name="seconds"
-                type="number"
-                placeholder="0"
-              />
+              <input id="seconds" name="seconds" type="number" />
             </div>
           </div>
         </fieldset>
@@ -262,9 +263,12 @@
           }
 
           if (event.target.matches("[data-update]")) {
-            let minutes = parseInt(minInput.value) * 60;
+            let minInputValue = minInput.value ? minInput.value : 0;
+            let secInputValue = secInput.value ? secInput.value : 0;
 
-            let seconds = parseInt(secInput.value);
+            let minutes = parseInt(minInputValue) * 60;
+
+            let seconds = parseInt(secInputValue);
 
             duration = minutes + seconds;
             app.data.time = minutes + seconds;
